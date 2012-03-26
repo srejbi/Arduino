@@ -196,7 +196,8 @@ public class Compiler implements MessageConsumer {
     List baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
       avrBasePath + "avr-gcc",
       "-Os",
-      "-Wl,--gc-sections"+optRelax,
+      (Preferences.get("build.linker_options")!= null ? Preferences.get("build.linker_options")+optRelax :
+      "-Wl,--gc-sections"+optRelax),
       "-mmcu=" + boardPreferences.get("build.mcu"),
       "-o",
       buildPath + File.separator + primaryClassName + ".elf"
@@ -208,8 +209,14 @@ public class Compiler implements MessageConsumer {
 
     baseCommandLinker.add(runtimeLibraryName);
     baseCommandLinker.add("-L" + buildPath);
-    baseCommandLinker.add("-lm");
-
+    if (Preferences.get("build.linker_additional_options") != null) {
+        for (String addopt : Preferences.get("build.linker_additional_options").split(" ")) {
+        	baseCommandLinker.add(addopt);
+        }
+    } else {
+      baseCommandLinker.add("-lm");
+    }
+    
     execAsynchronously(baseCommandLinker);
 
     List baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
